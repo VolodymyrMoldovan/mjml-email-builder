@@ -1,0 +1,29 @@
+# Source files (dist is published)
+src/
+demo/
+tests/
+index.html
+
+# Config files
+*.config.js
+*.config.ts
+tsconfig.json
+vite.config.*
+vitest.config.*
+
+# Development
+.vscode/
+.idea/
+.git/
+.gitignore
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__/
+coverage/
+
+# Misc
+.DS_Store
+*.log
+node_modules/
