@@ -2,6 +2,8 @@
 
 A Vue 3 drag-and-drop email builder component powered by [MJML](https://mjml.io/). Create responsive, professional email templates with an intuitive visual editor.
 
+![MJML Email Builder Demo](docs/demo.gif)
+
 ## Features
 
 - **Drag & Drop Interface** - Easily build emails by dragging components onto the canvas
