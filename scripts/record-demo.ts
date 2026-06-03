@@ -1,4 +1,4 @@
-import { chromium } from '@playwright/test';
+import { chromium, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,32 +6,37 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DEMO_URL = 'http://localhost:3002';
+const DEMO_URL = process.env.DEMO_URL || 'http://localhost:3000';
 const OUTPUT_DIR = path.join(__dirname, '../demo-screenshots');
-const FRAME_DELAY = 800; // ms between actions
+const FRAME_DELAY = 900;
 
 async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function waitForRender(page: Page) {
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await sleep(250);
+}
+
+async function clickToolbarElement(page: Page, label: string) {
+  const btn = page.locator('button.element-item', { hasText: new RegExp(`^\\s*${label}\\s*$`) }).first();
+  await btn.scrollIntoViewIfNeeded();
+  await btn.click();
+}
+
 async function recordDemo() {
-  // Create output directory
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
-
-  // Clear existing screenshots
-  const files = fs.readdirSync(OUTPUT_DIR);
-  for (const file of files) {
+  for (const file of fs.readdirSync(OUTPUT_DIR)) {
     if (file.endsWith('.png')) {
       fs.unlinkSync(path.join(OUTPUT_DIR, file));
     }
   }
 
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 800 },
-  });
+  const browser = await chromium.launch({ headless: process.env.HEADLESS !== '0' });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
   let frameCount = 0;
@@ -43,75 +48,77 @@ async function recordDemo() {
   };
 
   try {
-    // Navigate to the demo page
-    console.log('Opening email builder...');
-    await page.goto(DEMO_URL);
-    await page.waitForSelector('.email-builder');
-    await sleep(1000);
-    await screenshot('initial');
+    console.log(`Opening ${DEMO_URL} ...`);
+    await page.goto(DEMO_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('.email-builder', { timeout: 10_000 });
+    await waitForRender(page);
+    await screenshot('initial-empty');
 
-    // Click on Section button to add a section
-    console.log('Adding first section...');
-    await page.click('button:has-text("Section")');
+    console.log('Adding Section...');
+    await clickToolbarElement(page, 'Section');
+    await waitForRender(page);
     await sleep(FRAME_DELAY);
     await screenshot('section-added');
 
-    // Add a Hero section
-    console.log('Adding hero section...');
-    await page.click('button:has-text("Hero")');
+    console.log('Adding Text...');
+    await clickToolbarElement(page, 'Text');
+    await waitForRender(page);
     await sleep(FRAME_DELAY);
-    await screenshot('hero-added');
+    await screenshot('text-added');
 
-    // The hero is auto-selected, capture the property panel
-    console.log('Property panel visible...');
-    await sleep(300);
-    await screenshot('property-panel');
+    console.log('Adding Image...');
+    await clickToolbarElement(page, 'Image');
+    await waitForRender(page);
+    await sleep(FRAME_DELAY);
+    await screenshot('image-added');
 
-    // Switch to Code view
-    console.log('Showing code view...');
-    await page.click('button:has-text("Code")');
+    console.log('Adding Button...');
+    await clickToolbarElement(page, 'Button');
+    await waitForRender(page);
+    await sleep(FRAME_DELAY);
+    await screenshot('button-added');
+
+    console.log('Adding Divider...');
+    await clickToolbarElement(page, 'Divider');
+    await waitForRender(page);
+    await sleep(FRAME_DELAY);
+    await screenshot('divider-added');
+
+    console.log('Opening Code tab to show generated MJML...');
+    await page.locator('button:has-text("Code")').first().click();
+    await waitForRender(page);
+    await page.waitForSelector('textarea.code-editor', { timeout: 10_000 });
     await sleep(FRAME_DELAY);
     await screenshot('code-view');
 
-    // Switch to Preview view
-    console.log('Showing preview...');
-    await page.click('button:has-text("Preview")');
-    await sleep(FRAME_DELAY);
+    console.log('Switching to Preview (desktop)...');
+    await page.locator('button:has-text("Preview")').first().click();
+    await page.waitForSelector('.mjml-preview iframe', { timeout: 10_000 });
+    await sleep(1500);
     await screenshot('preview-desktop');
 
-    // Switch to mobile preview
-    console.log('Mobile preview...');
-    await page.click('button:has-text("Mobile")');
+    console.log('Switching preview to Mobile...');
+    await page.locator('button:has-text("Mobile")').click();
     await sleep(FRAME_DELAY);
     await screenshot('preview-mobile');
 
-    // Switch back to desktop
-    console.log('Desktop preview...');
-    await page.click('button:has-text("Desktop")');
+    console.log('Switching preview back to Desktop...');
+    await page.locator('button:has-text("Desktop")').click();
     await sleep(FRAME_DELAY);
     await screenshot('preview-desktop-final');
 
-    // Back to Design view
-    console.log('Back to design view...');
-    await page.click('button:has-text("Design")');
+    console.log('Back to Design...');
+    await page.locator('button:has-text("Design")').first().click();
+    await waitForRender(page);
     await sleep(FRAME_DELAY);
     await screenshot('design-final');
 
-    // Load a template
-    console.log('Loading template...');
-    const templateSelect = page.locator('select').first();
-    if (await templateSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await templateSelect.selectOption({ index: 1 });
-      await sleep(FRAME_DELAY);
-      await screenshot('template-loaded');
-    }
-
     console.log(`\nDemo recording complete! ${frameCount} frames captured.`);
     console.log(`Screenshots saved to: ${OUTPUT_DIR}`);
-
   } catch (error) {
     console.error('Error during recording:', error);
     await page.screenshot({ path: path.join(OUTPUT_DIR, 'error.png') });
+    process.exitCode = 1;
   } finally {
     await browser.close();
   }

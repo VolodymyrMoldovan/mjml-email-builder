@@ -51,7 +51,24 @@ const handleDragEnd = () => {
 const handleAddElement = (type: EmailElementType) => {
   if (type === 'mj-section' || type === 'mj-hero' || type === 'mj-wrapper') {
     emailBuilder.addElement(type);
+    return;
   }
+
+  const selectedId = emailBuilder.selectedElementId.value;
+  if (selectedId) {
+    emailBuilder.addElement(type, selectedId);
+    return;
+  }
+
+  const body = emailBuilder.template.value.body;
+  const lastLayout = [...body].reverse().find(el => el.type === 'mj-section' || el.type === 'mj-hero');
+  if (lastLayout) {
+    emailBuilder.addElement(type, lastLayout.id);
+    return;
+  }
+
+  const section = emailBuilder.addElement('mj-section');
+  emailBuilder.addElement(type, section.id);
 };
 </script>
 
@@ -81,7 +98,7 @@ const handleAddElement = (type: EmailElementType) => {
     <!-- Content Section -->
     <div class="mb-6">
       <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Content</h3>
-      <p class="text-xs text-gray-500 mb-2">Drag into a column</p>
+      <p class="text-xs text-gray-500 mb-2">Click to add or drag into a column</p>
       <div class="grid grid-cols-2 gap-2">
         <button
           v-for="{ type, config } in contentElements"
@@ -90,6 +107,7 @@ const handleAddElement = (type: EmailElementType) => {
           draggable="true"
           @dragstart="handleDragStart($event, type)"
           @dragend="handleDragEnd"
+          @click="handleAddElement(type)"
         >
           <i :class="['fas', config.icon, 'text-lg']"></i>
           <span class="text-xs">{{ config.label }}</span>
@@ -108,6 +126,7 @@ const handleAddElement = (type: EmailElementType) => {
           draggable="true"
           @dragstart="handleDragStart($event, type)"
           @dragend="handleDragEnd"
+          @click="handleAddElement(type)"
         >
           <i :class="['fas', config.icon, 'text-lg']"></i>
           <span class="text-xs">{{ config.label }}</span>
@@ -127,6 +146,7 @@ const handleAddElement = (type: EmailElementType) => {
           draggable="true"
           @dragstart="handleDragStart($event, type)"
           @dragend="handleDragEnd"
+          @click="handleAddElement(type)"
         >
           <i :class="['fas', config.icon, 'text-lg']"></i>
           <span class="text-xs">{{ config.label }}</span>
