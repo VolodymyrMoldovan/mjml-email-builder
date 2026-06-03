@@ -48,7 +48,7 @@
     "typescript",
     "component"
   ],
-  "author": "",
+  "author": "Vova Moldovan",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/VolodymyrMoldovan/mjml-email-builder/issues"
