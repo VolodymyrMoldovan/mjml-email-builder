@@ -1,6 +1,6 @@
 {
   "name": "mjml-email-builder",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "A Vue 3 drag-and-drop email builder component powered by MJML",
   "main": "dist/index.js",
