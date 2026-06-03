@@ -350,6 +350,8 @@ const handleClickOutside = (e: MouseEvent) => {
 <style scoped>
 .email-builder {
   min-height: 600px;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 .email-builder-content {
@@ -361,6 +363,14 @@ const handleClickOutside = (e: MouseEvent) => {
   flex-shrink: 0;
   min-height: 0;
   max-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.email-builder-sidebar > *,
+.email-builder-properties > * {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .templates-dropdown {

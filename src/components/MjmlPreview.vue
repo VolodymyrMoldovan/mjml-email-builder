@@ -32,7 +32,7 @@ watch(() => props.mjml, async (newMjml) => {
   error.value = null;
 
   try {
-    const result = mjml2html(newMjml, {
+    const result = await mjml2html(newMjml, {
       validationLevel: 'soft'
     });
 

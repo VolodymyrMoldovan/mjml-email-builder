@@ -510,10 +510,10 @@ const buildInteractionScript = (): string => {
 };
 
 // Render MJML for preview mode
-watch(mjmlOutput, (mjml) => {
+watch(mjmlOutput, async (mjml) => {
   if (mjml) {
     try {
-      const result = mjml2html(mjml, { validationLevel: 'soft' });
+      const result = await mjml2html(mjml, { validationLevel: 'soft' });
       renderedHtml.value = result.html;
     } catch (e) {
       console.error('MJML render error:', e);
@@ -523,10 +523,10 @@ watch(mjmlOutput, (mjml) => {
 }, { immediate: true });
 
 // Render MJML for edit mode with element IDs
-watch([() => emailBuilder.template.value, () => emailBuilder.template.value.body], () => {
+watch([() => emailBuilder.template.value, () => emailBuilder.template.value.body], async () => {
   try {
     const { mjml } = generateMjmlWithIds();
-    const result = mjml2html(mjml, { validationLevel: 'soft' });
+    const result = await mjml2html(mjml, { validationLevel: 'soft' });
     const script = buildInteractionScript();
     editableHtml.value = result.html.replace('</body>', script + '</body>');
   } catch (e) {

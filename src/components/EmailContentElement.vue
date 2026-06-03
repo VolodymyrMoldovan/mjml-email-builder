@@ -42,10 +42,10 @@ const generateElementMjml = (element: EmailElement): string => {
 </mjml>`;
 };
 
-watch(() => [props.element, props.element.attributes, props.element.content], () => {
+watch(() => [props.element, props.element.attributes, props.element.content], async () => {
   try {
     const mjml = generateElementMjml(props.element);
-    const result = mjml2html(mjml, { validationLevel: 'soft' });
+    const result = await mjml2html(mjml, { validationLevel: 'soft' });
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(result.html, 'text/html');

@@ -19,7 +19,7 @@ declare module 'mjml-browser' {
     preprocessors?: Array<(xml: string) => string>;
   }
 
-  function mjml2html(mjml: string, options?: MJMLParsingOptions): MJMLParseResults;
+  function mjml2html(mjml: string, options?: MJMLParsingOptions): Promise<MJMLParseResults>;
 
   export default mjml2html;
 }
